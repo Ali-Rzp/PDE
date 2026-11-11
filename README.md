@@ -4,40 +4,44 @@ This repository contains the original computational experiments from my research
 
 ## Original research notebook
 
-The original notebook is preserved as the authoritative research artifact, including its saved outputs, plots, and experiment cells:
+The original notebook is the authoritative research artifact. It retains the four benchmark problems, optimizer experiment cells, saved outputs, and plots:
 
 - [Finall_ALL_AL_PDE.ipynb](./Finall_ALL_AL_PDE.ipynb)
 
-It covers four benchmark problems and compares four population-based optimizers: Bald Eagle Search (BES), Particle Swarm Optimization (PSO), Genetic Algorithm (GA), and Whale Optimization Algorithm (WOA).
+The notebook compares Bald Eagle Search (BES), Particle Swarm Optimization (PSO), Genetic Algorithm (GA), and Whale Optimization Algorithm (WOA) across four problem settings.
 
-## Project organization
+## Repository structure
 
 ```text
 PDE/
 ├── Finall_ALL_AL_PDE.ipynb
 ├── README.md
 ├── requirements.txt
-└── scripts/
-    └── extract_experiments.py
+├── scripts/
+│   └── extract_experiments.py
+└── tests/
+    └── test_extraction.py
 ```
-
-The extraction script copies the original function definitions from the notebook's corresponding code cells into a problem/algorithm folder structure under `src/experiments/`. It does not replace the algorithm logic with newly written implementations.
 
 ## Generate the modular source files
 
-Run these commands from the repository root:
+The extraction script copies function definitions from the original notebook cells into separate Python modules. It preserves the original function bodies, imports, and explicit top-level NumPy seed calls. It does not redesign, merge, or tune any optimizer.
+
+Run from the repository root:
 
 ```bash
 python -m pip install -r requirements.txt
 python scripts/extract_experiments.py
 ```
 
-The script creates this structure:
+Generated structure:
 
 ```text
 src/
 └── experiments/
+    ├── __init__.py
     ├── problem_1/
+    │   ├── __init__.py
     │   ├── bes.py
     │   ├── pso.py
     │   ├── ga.py
@@ -47,31 +51,29 @@ src/
     └── problem_4/
 ```
 
-Each optimizer module is extracted from its own original notebook cell. This is intentional: some definitions differ between cells, so they are not silently unified. The generated modules contain the function definitions from those cells, while notebook-only plotting and experiment-driver code remain in the original notebook.
+Each of the 16 optimizer modules comes from its corresponding code cell in the notebook. Problem-specific helper functions are intentionally not unified because some definitions differ between cells. Notebook-only plotting and experiment-driver statements remain in the notebook.
 
-## Benchmark overview
+## Validation
 
-1. Polynomial approximation for the first heat-equation case.
-2. Fourier sine-series approximation.
-3. Fourier cosine-series approximation.
-4. Combined Fourier sine-cosine approximation.
+Run the lightweight extraction tests:
 
-The exact approximation definitions, objective terms, finite-difference calculation, optimizer parameters, and experimental settings are documented in the notebook and retained in the extracted function source.
+```bash
+python -m pytest -q
+```
+
+The tests check that all mapped notebook cells are valid, all 16 modules can be generated and parsed, and the extracted function ASTs match the original notebook function ASTs. They do not rerun the 16 optimization experiments or claim new numerical results.
+
+GitHub Actions runs these checks on pushes and pull requests to `main`.
 
 ## Reproducibility
 
-- Saved notebook outputs are the recorded outputs of the original experiments.
-- Re-running stochastic optimizers may produce different results depending on random-number state and execution order.
-- The extraction script is a source-organization utility; it does not rerun experiments or claim new benchmark results.
-- Do not compare results from altered implementations with the notebook's saved outputs unless the experimental setup is deliberately matched.
+- Saved notebook outputs remain the recorded outputs of the original experiments.
+- Optimizers are stochastic; reruns can depend on random state and execution order.
+- The extraction process is for code organization only. The notebook remains the source of truth for reported research results.
 
 ## Dependencies
 
-```text
-numpy
-matplotlib
-jupyter
-```
+NumPy and Matplotlib are used by the notebook. Jupyter is used to run it interactively. Pytest is used only for the extraction tests.
 
 ## Author
 
