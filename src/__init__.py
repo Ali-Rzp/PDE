@@ -1,1 +1,0 @@
-"""PDE optimization research project."""
