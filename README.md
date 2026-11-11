@@ -19,9 +19,18 @@ PDE/
 ├── requirements.txt
 ├── scripts/
 │   └── extract_experiments.py
+├── src/
+│   └── experiments/
+│       ├── problem_1/
+│       ├── problem_2/
+│       ├── problem_3/
+│       └── problem_4/
 └── tests/
-    └── test_extraction.py
+    ├── test_extraction.py
+    └── test_runtime_smoke.py
 ```
+
+Each problem folder contains the original BES, PSO, GA, and WOA implementations extracted from its corresponding notebook cells.
 
 ## Generate the modular source files
 
@@ -34,46 +43,36 @@ python -m pip install -r requirements.txt
 python scripts/extract_experiments.py
 ```
 
-Generated structure:
-
-```text
-src/
-└── experiments/
-    ├── __init__.py
-    ├── problem_1/
-    │   ├── __init__.py
-    │   ├── bes.py
-    │   ├── pso.py
-    │   ├── ga.py
-    │   └── woa.py
-    ├── problem_2/
-    ├── problem_3/
-    └── problem_4/
-```
-
-Each of the 16 optimizer modules comes from its corresponding code cell in the notebook. Problem-specific helper functions are intentionally not unified because some definitions differ between cells. Notebook-only plotting and experiment-driver statements remain in the notebook.
+Problem-specific helper functions are intentionally not unified because some definitions differ between cells. Notebook-only plotting and experiment-driver statements remain in the notebook.
 
 ## Validation
 
-Run the lightweight extraction tests:
+Run the tests:
 
 ```bash
 python -m pytest -q
 ```
 
-The tests check that all mapped notebook cells are valid, all 16 modules can be generated and parsed, and the extracted function ASTs match the original notebook function ASTs. They do not rerun the 16 optimization experiments or claim new numerical results.
+The tests cover three different levels:
+
+1. **Extraction structure:** all 16 mapped notebook cells are code cells and contain valid function definitions.
+2. **Source preservation:** generated function ASTs match the original notebook function ASTs.
+3. **Runtime smoke checks:** all 16 modules are imported, and each problem's objective function is evaluated once with a simple finite parameter vector.
+
+Runtime smoke checks are not full optimizer runs. They do not rerun BES, PSO, GA, or WOA searches, reproduce the saved research results, or prove numerical equivalence across all parameter settings.
 
 GitHub Actions runs these checks on pushes and pull requests to `main`.
 
-## Reproducibility
+## Reproducibility and scope
 
 - Saved notebook outputs remain the recorded outputs of the original experiments.
 - Optimizers are stochastic; reruns can depend on random state and execution order.
-- The extraction process is for code organization only. The notebook remains the source of truth for reported research results.
+- The extraction process is for code organization and basic runtime validation only.
+- The original notebook remains the source of truth for reported research results.
 
 ## Dependencies
 
-NumPy and Matplotlib are used by the notebook. Jupyter is used to run it interactively. Pytest is used only for the extraction tests.
+NumPy and Matplotlib are used by the notebook and extracted modules. Jupyter is used to run the notebook interactively. Pytest is used for automated tests.
 
 ## Author
 
