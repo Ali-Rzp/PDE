@@ -40,11 +40,11 @@ def extract_original_definitions(source: str) -> str:
             and ast.unparse(node.value.func) == "np.random.seed"
         )
         if is_import or is_function or is_seed:
-            selected.append("\\n".join(lines[node.lineno - 1:node.end_lineno]))
+            selected.append("\n".join(lines[node.lineno - 1:node.end_lineno]))
 
     if not any(isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) for n in tree.body):
         raise ValueError("No top-level function definitions found in source cell.")
-    return "\\n\\n".join(selected).rstrip() + "\\n"
+    return "\n\n".join(selected).rstrip() + "\n"
 
 
 def main() -> None:
@@ -54,7 +54,7 @@ def main() -> None:
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     OUTPUT.mkdir(parents=True, exist_ok=True)
     (OUTPUT / "__init__.py").write_text(
-        '"""Original optimizer implementations extracted from the notebook."""\\n',
+        '"""Original optimizer implementations extracted from the notebook."""\n',
         encoding="utf-8",
     )
 
@@ -62,7 +62,7 @@ def main() -> None:
         problem_dir = OUTPUT / problem
         problem_dir.mkdir(parents=True, exist_ok=True)
         (problem_dir / "__init__.py").write_text(
-            f'"""Original optimizer implementations for {problem}."""\\n',
+            f'"""Original optimizer implementations for {problem}."""\n',
             encoding="utf-8",
         )
 
