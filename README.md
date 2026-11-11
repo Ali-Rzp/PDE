@@ -1,69 +1,77 @@
 # Metaheuristic Optimization for Heat-Equation PDEs
 
-This repository contains the computational experiments from my research on solving one-dimensional heat-equation problems using metaheuristic optimization algorithms.
+This repository contains the original computational experiments from my research on solving one-dimensional heat-equation problems using metaheuristic optimization algorithms.
 
-The original research notebook is preserved as the primary implementation and source of the reported experimental outputs:
+## Original research notebook
 
-- [Open the original notebook](./Finall_ALL_AL_PDE.ipynb)
+The original notebook is preserved as the authoritative research artifact, including its saved outputs, plots, and experiment cells:
 
-## Research overview
+- [Finall_ALL_AL_PDE.ipynb](./Finall_ALL_AL_PDE.ipynb)
 
-The notebook studies four heat-equation benchmark cases and compares four population-based optimization algorithms:
+It covers four benchmark problems and compares four population-based optimizers: Bald Eagle Search (BES), Particle Swarm Optimization (PSO), Genetic Algorithm (GA), and Whale Optimization Algorithm (WOA).
 
-- Bald Eagle Search (BES)
-- Particle Swarm Optimization (PSO)
-- Genetic Algorithm (GA)
-- Whale Optimization Algorithm (WOA)
-
-The four approximation settings in the notebook are:
-
-1. A polynomial approximation for the solution \(u(x,t)=x^2+2t\).
-2. A Fourier sine-series approximation for \(u(x,t)=e^{-\pi^2t}\sin(\pi x)\).
-3. A Fourier cosine-series approximation for \(u(x,t)=e^{-\pi^2t}\cos(\pi x)\).
-4. A combined Fourier sine-cosine approximation for \(u(x,t)=e^{-\pi^2t}(\sin(\pi x)+\cos(\pi x))\).
-
-For each case, the notebook defines an approximate solution, an analytical solution, error components, an objective function, and optimizer implementations. The PDE residual is evaluated numerically using finite differences in a Crank–Nicolson-style expression; initial and boundary-condition errors are also included in the objective.
-
-## Repository structure
+## Project organization
 
 ```text
 PDE/
+├── Finall_ALL_AL_PDE.ipynb
 ├── README.md
 ├── requirements.txt
-└── Finall_ALL_AL_PDE.ipynb
+└── scripts/
+    └── extract_experiments.py
 ```
 
-The notebook is intentionally retained as the authoritative research artifact. No separate optimizer package is presented as an equivalent replacement.
+The extraction script copies the original function definitions from the notebook's corresponding code cells into a problem/algorithm folder structure under `src/experiments/`. It does not replace the algorithm logic with newly written implementations.
 
-## Run the notebook
+## Generate the modular source files
 
-Python 3.10 or newer is recommended.
+Run these commands from the repository root:
 
 ```bash
-python -m venv .venv
-
-# Windows
-.venv\\Scripts\\activate
-
-# macOS / Linux
-source .venv/bin/activate
-
 python -m pip install -r requirements.txt
-jupyter notebook Finall_ALL_AL_PDE.ipynb
+python scripts/extract_experiments.py
 ```
 
-You can also open the notebook in Google Colab by uploading it or using GitHub's notebook preview.
+The script creates this structure:
 
-## Reproducibility notes
+```text
+src/
+└── experiments/
+    ├── problem_1/
+    │   ├── bes.py
+    │   ├── pso.py
+    │   ├── ga.py
+    │   └── woa.py
+    ├── problem_2/
+    ├── problem_3/
+    └── problem_4/
+```
 
-- The notebook contains saved outputs from the original experiments.
-- Re-running the notebook may produce different optimization results depending on random-number state, execution order, and environment.
-- The saved outputs should be treated as the recorded results of the original notebook, not as results from a later refactor.
-- The numerical PDE residual depends on the finite-difference grid. When interpreting very small solution errors, distinguish approximation error from discretization error in the residual.
+Each optimizer module is extracted from its own original notebook cell. This is intentional: some definitions differ between cells, so they are not silently unified. The generated modules contain the function definitions from those cells, while notebook-only plotting and experiment-driver code remain in the original notebook.
+
+## Benchmark overview
+
+1. Polynomial approximation for the first heat-equation case.
+2. Fourier sine-series approximation.
+3. Fourier cosine-series approximation.
+4. Combined Fourier sine-cosine approximation.
+
+The exact approximation definitions, objective terms, finite-difference calculation, optimizer parameters, and experimental settings are documented in the notebook and retained in the extracted function source.
+
+## Reproducibility
+
+- Saved notebook outputs are the recorded outputs of the original experiments.
+- Re-running stochastic optimizers may produce different results depending on random-number state and execution order.
+- The extraction script is a source-organization utility; it does not rerun experiments or claim new benchmark results.
+- Do not compare results from altered implementations with the notebook's saved outputs unless the experimental setup is deliberately matched.
 
 ## Dependencies
 
-The notebook imports NumPy and Matplotlib. Jupyter is included to run it interactively. The `mpl_toolkits` package used for 3D plotting is provided by Matplotlib.
+```text
+numpy
+matplotlib
+jupyter
+```
 
 ## Author
 
