@@ -1,9 +1,11 @@
-"""Extract the original experiment functions from the thesis notebook.
+"""Extract original optimizer functions from the research notebook without rewriting them.
 
-This script copies function source verbatim from the notebook's code cells.
-It does not rewrite algorithm logic, objective functions, or parameters.
 Run from the repository root:
     python scripts/extract_experiments.py
+
+The generated modules retain each cell's imports, explicit NumPy seed statement
+(if present), and top-level function definitions verbatim. Plotting and
+experiment-driver statements remain in the original notebook.
 """
 from __future__ import annotations
 
@@ -14,7 +16,7 @@ from pathlib import Path
 NOTEBOOK = Path("Finall_ALL_AL_PDE.ipynb")
 OUTPUT = Path("src/experiments")
 
-# Zero-based notebook cell index for each original problem/algorithm section.
+# Zero-based code-cell indices in the original notebook.
 CELL_MAP = {
     "problem_1": {"bes": 3, "pso": 5, "ga": 7, "woa": 9},
     "problem_2": {"bes": 13, "pso": 15, "ga": 17, "woa": 19},
@@ -23,28 +25,36 @@ CELL_MAP = {
 }
 
 
-def extract_functions(source: str) -> str:
-    """Return top-level function definitions exactly as written in source."""
+def extract_original_definitions(source: str) -> str:
+    """Copy imports, explicit NumPy seed calls, and function definitions verbatim."""
     tree = ast.parse(source)
     lines = source.splitlines()
-    blocks = [
-        "\n".join(lines[node.lineno - 1:node.end_lineno])
-        for node in tree.body
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-    ]
-    if not blocks:
+    selected = []
+
+    for node in tree.body:
+        is_import = isinstance(node, (ast.Import, ast.ImportFrom))
+        is_function = isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        is_seed = (
+            isinstance(node, ast.Expr)
+            and isinstance(node.value, ast.Call)
+            and ast.unparse(node.value.func) == "np.random.seed"
+        )
+        if is_import or is_function or is_seed:
+            selected.append("\\n".join(lines[node.lineno - 1:node.end_lineno]))
+
+    if not any(isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) for n in tree.body):
         raise ValueError("No top-level function definitions found in source cell.")
-    return "\n\n\n".join(blocks) + "\n"
+    return "\\n\\n".join(selected).rstrip() + "\\n"
 
 
 def main() -> None:
-    if not NOTEBOOK.exists():
+    if not NOTEBOOK.is_file():
         raise FileNotFoundError(f"Notebook not found: {NOTEBOOK}")
 
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     OUTPUT.mkdir(parents=True, exist_ok=True)
     (OUTPUT / "__init__.py").write_text(
-        '"""Original notebook experiment implementations."""\n',
+        '"""Original optimizer implementations extracted from the notebook."""\\n',
         encoding="utf-8",
     )
 
@@ -52,7 +62,7 @@ def main() -> None:
         problem_dir = OUTPUT / problem
         problem_dir.mkdir(parents=True, exist_ok=True)
         (problem_dir / "__init__.py").write_text(
-            f'"""Original experiment cells for {problem}."""\n',
+            f'"""Original optimizer implementations for {problem}."""\\n',
             encoding="utf-8",
         )
 
@@ -60,20 +70,12 @@ def main() -> None:
             cell = notebook["cells"][cell_index]
             if cell.get("cell_type") != "code":
                 raise TypeError(f"Notebook cell {cell_index} is not a code cell.")
+
             source = "".join(cell.get("source", []))
-            extracted = extract_functions(source)
-            header = (
-                '"""\n'
-                f"Function definitions copied from notebook code cell {cell_index} "
-                f"({problem}, {algorithm.upper()}).\n"
-                "Algorithm and objective logic are intentionally unchanged.\n"
-                '"""\n'
-                "import numpy as np\n\n"
-                "np.random.seed(0)\n\n"
-            )
+            extracted = extract_original_definitions(source)
             target = problem_dir / f"{algorithm}.py"
-            target.write_text(header + extracted, encoding="utf-8")
-            print(f"Extracted {problem}/{algorithm}.py from notebook cell {cell_index}")
+            target.write_text(extracted, encoding="utf-8")
+            print(f"Extracted {target} from notebook code cell {cell_index}")
 
 
 if __name__ == "__main__":
