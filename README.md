@@ -1,15 +1,28 @@
-# Solving Heat-Equation PDEs with Metaheuristic Optimization
+# Metaheuristic Optimization for Heat-Equation PDEs
 
-This repository studies population-based metaheuristics for estimating parameters of approximate solutions to one-dimensional heat-equation problems.
+This repository contains the computational experiments from my research on solving one-dimensional heat-equation problems using metaheuristic optimization algorithms.
 
-## Research workflow
+The original research notebook is preserved as the primary implementation and source of the reported experimental outputs:
 
-1. Represent the unknown solution with a problem-specific approximation basis.
-2. Build an objective from the PDE residual, initial condition, and boundary conditions.
-3. Search for approximation parameters using metaheuristic optimizers.
-4. Compare the approximation with the analytical solution where available.
+- [Open the original notebook](./Finall_ALL_AL_PDE.ipynb)
 
-Four benchmark problems and four optimizers are included: Bald Eagle Search (BES), Particle Swarm Optimization (PSO), Genetic Algorithm (GA), and Whale Optimization Algorithm (WOA).
+## Research overview
+
+The notebook studies four heat-equation benchmark cases and compares four population-based optimization algorithms:
+
+- Bald Eagle Search (BES)
+- Particle Swarm Optimization (PSO)
+- Genetic Algorithm (GA)
+- Whale Optimization Algorithm (WOA)
+
+The four approximation settings in the notebook are:
+
+1. A polynomial approximation for the solution \(u(x,t)=x^2+2t\).
+2. A Fourier sine-series approximation for \(u(x,t)=e^{-\pi^2t}\sin(\pi x)\).
+3. A Fourier cosine-series approximation for \(u(x,t)=e^{-\pi^2t}\cos(\pi x)\).
+4. A combined Fourier sine-cosine approximation for \(u(x,t)=e^{-\pi^2t}(\sin(\pi x)+\cos(\pi x))\).
+
+For each case, the notebook defines an approximate solution, an analytical solution, error components, an objective function, and optimizer implementations. The PDE residual is evaluated numerically using finite differences in a Crank–Nicolson-style expression; initial and boundary-condition errors are also included in the objective.
 
 ## Repository structure
 
@@ -17,83 +30,44 @@ Four benchmark problems and four optimizers are included: Bald Eagle Search (BES
 PDE/
 ├── README.md
 ├── requirements.txt
-├── Finall_ALL_AL_PDE.ipynb       # Original thesis notebook, preserved
-├── src/
-│   ├── problems.py               # Benchmark problems and approximation bases
-│   ├── objective.py              # Shared finite-difference objective
-│   └── optimizers/
-│       ├── bes.py
-│       ├── pso.py
-│       ├── ga.py
-│       └── woa.py
-└── tests/
-    └── test_smoke.py
+└── Finall_ALL_AL_PDE.ipynb
 ```
 
-## Setup
+The notebook is intentionally retained as the authoritative research artifact. No separate optimizer package is presented as an equivalent replacement.
+
+## Run the notebook
 
 Python 3.10 or newer is recommended.
 
 ```bash
 python -m venv .venv
+
 # Windows
 .venv\\Scripts\\activate
+
 # macOS / Linux
 source .venv/bin/activate
 
 python -m pip install -r requirements.txt
+jupyter notebook Finall_ALL_AL_PDE.ipynb
 ```
 
-## Quick start
+You can also open the notebook in Google Colab by uploading it or using GitHub's notebook preview.
 
-Run from the repository root:
+## Reproducibility notes
 
-```python
-from src.problems import PROBLEMS
-from src.objective import fitness_function
-from src.optimizers import bes, pso, genetic_algorithm, whale_optimization
+- The notebook contains saved outputs from the original experiments.
+- Re-running the notebook may produce different optimization results depending on random-number state, execution order, and environment.
+- The saved outputs should be treated as the recorded results of the original notebook, not as results from a later refactor.
+- The numerical PDE residual depends on the finite-difference grid. When interpreting very small solution errors, distinguish approximation error from discretization error in the residual.
 
-problem = PROBLEMS["sine"]
-dimensions = 2
+## Dependencies
 
-def objective(theta):
-    return fitness_function(problem, theta)
-
-for optimizer in (bes, pso, genetic_algorithm, whale_optimization):
-    if optimizer is genetic_algorithm:
-        best, loss, components = optimizer(objective, dimensions, generations=300)
-    else:
-        best, loss, components = optimizer(objective, dimensions, iterations=300)
-    print(optimizer.__name__, best, loss, components)
-```
-
-Use six parameters for the polynomial benchmark, one parameter per mode for sine/cosine series, and an even number of parameters for the mixed sine-cosine basis.
-
-## Benchmark problems
-
-| Key | Approximation | Analytical solution |
-|---|---|---|
-| `polynomial` | Six-term polynomial | `x² + 2t` |
-| `sine` | Decaying sine series | `exp(-π²t) sin(πx)` |
-| `cosine` | Decaying cosine series | `exp(-π²t) cos(πx)` |
-| `mixed` | Combined sine-cosine series | `exp(-π²t)(sin(πx)+cos(πx))` |
-
-## Objective and numerical note
-
-The objective returns four components: PDE residual RMSE, initial-condition RMSE, left-boundary RMSE, and right-boundary RMSE. The PDE residual retains the finite-difference / Crank-Nicolson-style calculation used in the original notebook. Its value depends on spatial and temporal grid resolution and can remain nonzero even when the approximation is close to the analytical solution. A convergence study or an analytical-derivative residual is needed for stronger numerical claims.
-
-## Genetic Algorithm note
-
-The new GA module uses tournament selection and elitism. This differs from the original notebook's GA variant, which selected parents uniformly at random. Therefore, its results must not be mixed with the notebook's saved GA outputs without rerunning the experiments.
-
-## Reproducibility
-
-All optimizer functions accept a `seed` argument. The original notebook is preserved as a record of the thesis experiments. Its saved outputs are historical and are not results from the refactored package. No new benchmark scores are claimed here.
-
-## Original notebook
-
-Open [Finall_ALL_AL_PDE.ipynb](./Finall_ALL_AL_PDE.ipynb) in Jupyter or Google Colab.
+The notebook imports NumPy and Matplotlib. Jupyter is included to run it interactively. The `mpl_toolkits` package used for 3D plotting is provided by Matplotlib.
 
 ## Author
 
-**Ali Rezapour** · [GitHub](https://github.com/Ali-Rzp) · [Portfolio](https://ali-rezapour.vercel.app/)
+**Ali Rezapour**
+
+- GitHub: https://github.com/Ali-Rzp
+- Portfolio: https://ali-rezapour.vercel.app/
